@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cimol Bojot AA — Bandung GoFood Kiosk Map</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#C8232C;--gold:#F0A500;--cream:#F2E8D9;--ink:#2A1A18;--muted:#9A8C7E;--green:#2E7D52;--teal:#1F6F6B;}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:#1C1411;color:var(--ink)}
+#wrap{display:flex;height:100vh;width:100vw;overflow:hidden}
+#map{flex:1;height:100%}
+#panel{width:410px;height:100%;background:var(--cream);overflow:hidden;box-shadow:-4px 0 24px rgba(0,0,0,.35);z-index:500;display:flex;flex-direction:column}
+header{padding:18px 22px 13px;background:var(--red);color:var(--cream);position:relative;overflow:hidden;flex-shrink:0}
+header:before{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;background:var(--gold);border-radius:50%;opacity:.22}
+header .kick{font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.85}
+header h1{font-family:'Bricolage Grotesque';font-weight:800;font-size:22px;line-height:1.07;margin-top:5px}
+header p{font-size:11.5px;margin-top:7px;opacity:.93;line-height:1.45}
+.tabs{display:flex;flex-shrink:0;background:#fff;border-bottom:1px solid #e7dcc9}
+.tab{flex:1;padding:12px 8px;text-align:center;cursor:pointer;font-family:'Bricolage Grotesque';font-weight:700;font-size:12.5px;color:var(--muted);border-bottom:3px solid transparent}
+.tab.on{color:var(--red);border-bottom-color:var(--red);background:var(--cream)}
+.tab span{display:block;font-size:9.5px;font-weight:600;color:var(--muted);margin-top:2px;font-family:'Plus Jakarta Sans'}
+.legend{display:flex;gap:11px;padding:10px 22px;background:#fff;border-bottom:1px solid #e7dcc9;font-size:11px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.legend b{font-family:'Bricolage Grotesque';font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.dot{display:inline-flex;align-items:center;gap:5px}.dot i{width:12px;height:12px;border-radius:50%;display:inline-block;border:2px solid #fff;box-shadow:0 0 0 1px #ccc}.dot .sq{border-radius:3px}
+.scroll{overflow-y:auto;flex:1;padding:4px 12px 20px}
+.card{background:#fff;border-radius:12px;padding:11px 14px;margin:7px 4px;cursor:pointer;border-left:5px solid var(--gold)}
+.card:hover{box-shadow:0 6px 18px rgba(200,35,44,.16);transform:translateX(-3px)}
+.card .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card .nm{font-family:'Bricolage Grotesque';font-weight:700;font-size:15px;color:var(--ink)}
+.card .rk{font-family:'Bricolage Grotesque';font-weight:800;font-size:11px;color:#fff;background:#B9A78E;border-radius:20px;padding:2px 8px}
+.card .sub{font-size:10.5px;color:var(--muted);margin-top:1px;text-transform:capitalize}
+.card .mets{display:flex;gap:12px;margin-top:8px;font-size:11px;color:#5a4a42}
+.card .mets b{display:block;font-family:'Bricolage Grotesque';font-size:13px;color:var(--ink)}
+.bar{height:5px;background:#ece1cf;border-radius:3px;margin-top:8px;overflow:hidden}.bar i{display:block;height:100%}
+.kindtag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:4px}
+.kindtag.mall{background:#fbe6c4;color:#9a6b00}.kindtag.campus{background:#dbe7d4;color:var(--green)}.kindtag.station{background:#d4e9e7;color:var(--teal)}
+footer{font-size:10px;color:var(--muted);padding:11px 22px 15px;line-height:1.5;background:#fff;border-top:1px solid #e7dcc9;flex-shrink:0}
+.hide{display:none}
+.leaflet-popup-content-wrapper{border-radius:13px}.pop{font-family:'Plus Jakarta Sans';min-width:210px}
+.pop h3{font-family:'Bricolage Grotesque';color:var(--red);font-size:16px;margin-bottom:1px}.pop .pr{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:capitalize}
+.pop table{width:100%;border-collapse:collapse;font-size:12px}.pop td{padding:3px 0;border-bottom:1px solid #f0e9dc}.pop td:last-child{text-align:right;font-weight:700;font-family:'Bricolage Grotesque'}
+.pop .poi{font-size:11px;color:#5a4a42;margin-top:8px;font-style:italic}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;color:#fff;margin-top:7px}
+.siteicon{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px 8px 8px 2px;color:#fff;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,.4);border:2px solid #fff}
+@media(max-width:760px){#wrap{flex-direction:column}#panel{width:100%;height:52%}#map{height:48%}}
+</style></head><body>
+<div id="wrap"><div id="map"></div><aside id="panel">
+<header><div class="kick">Cimol Bojot AA · Bandung</div><h1>GoFood demand x footfall</h1>
+<p>Where to open kiosks, from real GoFood Snacks &amp; Jajanan orders (Jun 2026) + footfall anchors. Tab 1 = underserved online demand by area; Tab 2 = mall/campus/station sites scored on footfall x that demand.</p></header>
+<div class="tabs">
+<div class="tab on" id="tA" onclick="show(\'A\')">Demand areas<span>31 subdistricts</span></div>
+<div class="tab" id="tB" onclick="show(\'B\')">Kiosk sites<span>19 footfall anchors</span></div></div>
+<div class="legend" id="lA"><b>Self-sufficiency</b>
+<span class="dot"><i style="background:#C8232C"></i>&lt;25% (very underserved)</span>
+<span class="dot"><i style="background:#F0A500"></i>25–50%</span>
+<span class="dot"><i style="background:#2E7D52"></i>&gt;50%</span></div>
+<div class="legend hide" id="lB"><b>Fit</b>
+<span class="dot"><i class="sq" style="background:#C8232C"></i>Top</span><span class="dot"><i class="sq" style="background:#F0A500"></i>Mid</span><span class="dot"><i class="sq" style="background:#B9A78E"></i>Low</span>
+&nbsp;<span class="dot">\ud83c\udfec</span><span class="dot">\ud83c\udf93</span><span class="dot">\ud83d\ude89</span></div>
+<div class="scroll" id="listA"></div><div class="scroll hide" id="listB"></div>
+<footer id="fA"><b>Leaked orders</b> = monthly GoFood snack orders by residents of the area that are filled by a resto OUTSIDE it — underserved demand a local kiosk could capture. Color = self-sufficiency (share met locally). One month (Jun 2026); online only.</footer>
+<footer class="hide" id="fB"><b>Site fit</b> = 50% footfall (Google reviews) + 50% underserved online demand in that subdistrict. High = crowds AND unmet snack demand overlap. Footfall is a proxy; rent &amp; kiosk/tenancy availability not checked. Jatinangor/Cibiru score low: already self-served or thin demand.</footer>
+</aside></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const DATA={"areas": [{"sub": "BANDUNG WETAN", "reg": "KOTA BANDUNG", "lat": -6.9, "lon": 107.618, "demand": 2733, "leaked": 1970, "self_suff": 0.2791803878521771, "dist": 2.509820709842664, "rank": 1}, {"sub": "CICENDO", "reg": "KOTA BANDUNG", "lat": -6.906, "lon": 107.594, "demand": 2596, "leaked": 1963, "self_suff": 0.2438366718027735, "dist": 3.082681047765793, "rank": 2}, {"sub": "SUMUR BANDUNG", "reg": "KOTA BANDUNG", "lat": -6.915, "lon": 107.61, "demand": 2762, "leaked": 1849, "self_suff": 0.3305575669804489, "dist": 2.204971035481535, "rank": 3}, {"sub": "COBLONG", "reg": "KOTA BANDUNG", "lat": -6.888, "lon": 107.615, "demand": 4053, "leaked": 1763, "self_suff": 0.5650135701949174, "dist": 2.5903232173698494, "rank": 4}, {"sub": "BATUNUNGGAL", "reg": "KOTA BANDUNG", "lat": -6.94, "lon": 107.63, "demand": 1853, "leaked": 1668, "self_suff": 0.0998381003777657, "dist": 2.963043712898004, "rank": 5}, {"sub": "SUKAJADI", "reg": "KOTA BANDUNG", "lat": -6.888, "lon": 107.595, "demand": 2383, "leaked": 1615, "self_suff": 0.322282836760386, "dist": 3.145681913554343, "rank": 6}, {"sub": "REGOL", "reg": "KOTA BANDUNG", "lat": -6.93, "lon": 107.61, "demand": 1861, "leaked": 1547, "self_suff": 0.168726491133799, "dist": 2.746303062869425, "rank": 7}, {"sub": "LENGKONG", "reg": "KOTA BANDUNG", "lat": -6.925, "lon": 107.62, "demand": 3098, "leaked": 1547, "self_suff": 0.5006455777921239, "dist": 2.347517753389284, "rank": 8}, {"sub": "CIBEUNYING KALER", "reg": "KOTA BANDUNG", "lat": -6.885, "lon": 107.625, "demand": 1968, "leaked": 1439, "self_suff": 0.2688008130081301, "dist": 2.846432926829268, "rank": 9}, {"sub": "SUKASARI", "reg": "KOTA BANDUNG", "lat": -6.865, "lon": 107.59, "demand": 2059, "leaked": 1390, "self_suff": 0.3249150072850899, "dist": 2.545167557066537, "rank": 10}, {"sub": "CIMENYAN", "reg": "BANDUNG", "lat": -6.86, "lon": 107.66, "demand": 1376, "leaked": 1373, "self_suff": 0.0021802325581395, "dist": 4.323713662790698, "rank": 11}, {"sub": "PARONGPONG", "reg": "BANDUNG BARAT", "lat": -6.82, "lon": 107.59, "demand": 1999, "leaked": 1286, "self_suff": 0.3566783391695848, "dist": 3.6697148574287146, "rank": 12}, {"sub": "CIDADAP", "reg": "KOTA BANDUNG", "lat": -6.87, "lon": 107.605, "demand": 2175, "leaked": 1228, "self_suff": 0.4354022988505747, "dist": 2.852579310344828, "rank": 13}, {"sub": "BOJONGSOANG", "reg": "BANDUNG", "lat": -6.975, "lon": 107.635, "demand": 1473, "leaked": 1213, "self_suff": 0.1765105227427019, "dist": 3.1708961303462324, "rank": 14}, {"sub": "CIMAHI UTARA", "reg": "KOTA CIMAHI", "lat": -6.865, "lon": 107.54, "demand": 2613, "leaked": 1121, "self_suff": 0.5709911978568695, "dist": 2.6662992728664374, "rank": 15}, {"sub": "CIMAHI TENGAH", "reg": "KOTA CIMAHI", "lat": -6.885, "lon": 107.545, "demand": 1529, "leaked": 1086, "self_suff": 0.28973185088293, "dist": 2.8320797907128843, "rank": 16}, {"sub": "ARCAMANIK", "reg": "KOTA BANDUNG", "lat": -6.915, "lon": 107.665, "demand": 1680, "leaked": 1063, "self_suff": 0.3672619047619048, "dist": 2.819244047619048, "rank": 17}, {"sub": "BANDUNG KIDUL", "reg": "KOTA BANDUNG", "lat": -6.955, "lon": 107.63, "demand": 1691, "leaked": 1030, "self_suff": 0.3908929627439385, "dist": 2.7152513305736248, "rank": 18}, {"sub": "ANDIR", "reg": "KOTA BANDUNG", "lat": -6.915, "lon": 107.585, "demand": 1203, "leaked": 1026, "self_suff": 0.1471321695760598, "dist": 3.043973399833749, "rank": 19}, {"sub": "ASTANAANYAR", "reg": "KOTA BANDUNG", "lat": -6.93, "lon": 107.6, "demand": 1248, "leaked": 1001, "self_suff": 0.1979166666666666, "dist": 2.653421474358974, "rank": 20}, {"sub": "BUAHBATU", "reg": "KOTA BANDUNG", "lat": -6.945, "lon": 107.65, "demand": 1595, "leaked": 988, "self_suff": 0.380564263322884, "dist": 2.815962382445141, "rank": 21}, {"sub": "KIARACONDONG", "reg": "KOTA BANDUNG", "lat": -6.92, "lon": 107.645, "demand": 1009, "leaked": 879, "self_suff": 0.1288404360753221, "dist": 2.917224975222993, "rank": 22}, {"sub": "ANTAPANI", "reg": "KOTA BANDUNG", "lat": -6.915, "lon": 107.655, "demand": 2110, "leaked": 865, "self_suff": 0.590047393364929, "dist": 2.229857819905213, "rank": 23}, {"sub": "CIBEUNYING KIDUL", "reg": "KOTA BANDUNG", "lat": -6.905, "lon": 107.64, "demand": 1150, "leaked": 778, "self_suff": 0.3234782608695652, "dist": 2.619617391304348, "rank": 24}, {"sub": "DAYEUHKOLOT", "reg": "BANDUNG", "lat": -6.985, "lon": 107.63, "demand": 1038, "leaked": 728, "self_suff": 0.2986512524084778, "dist": 3.0689884393063585, "rank": 25}, {"sub": "BABAKAN CIPARAY", "reg": "KOTA BANDUNG", "lat": -6.945, "lon": 107.575, "demand": 823, "leaked": 696, "self_suff": 0.1543134872417983, "dist": 3.4116524908869987, "rank": 26}, {"sub": "CIMAHI SELATAN", "reg": "KOTA CIMAHI", "lat": -6.905, "lon": 107.54, "demand": 1298, "leaked": 642, "self_suff": 0.5053929121725732, "dist": 2.999121725731895, "rank": 27}, {"sub": "BOJONGLOA KALER", "reg": "KOTA BANDUNG", "lat": -6.925, "lon": 107.59, "demand": 728, "leaked": 623, "self_suff": 0.1442307692307692, "dist": 3.042541208791209, "rank": 28}, {"sub": "BOJONGLOA KIDUL", "reg": "KOTA BANDUNG", "lat": -6.945, "lon": 107.6, "demand": 897, "leaked": 596, "self_suff": 0.3355629877369008, "dist": 3.29371237458194, "rank": 29}, {"sub": "NGAMPRAH", "reg": "BANDUNG BARAT", "lat": -6.845, "lon": 107.51, "demand": 886, "leaked": 491, "self_suff": 0.445823927765237, "dist": 3.4542099322799102, "rank": 30}, {"sub": "SUKASARI", "reg": "SUMEDANG", "lat": -6.865, "lon": 107.59, "demand": 8, "leaked": 8, "self_suff": 0.0, "dist": 5.5, "rank": 31}], "anchors": [{"name": "Bandung Indah Plaza", "kind": "mall", "lat": -6.9086653, "lon": 107.6108282, "reviews": 51950, "sub": "BANDUNG WETAN", "demand": 2733, "leaked": 1970, "self_suff": 0.2791803879, "score": 93.3340807442}, {"name": "Cihampelas Walk", "kind": "mall", "lat": -6.8943174, "lon": 107.6050141, "reviews": 67945, "sub": "COBLONG", "demand": 4053, "leaked": 1763, "self_suff": 0.5650135702, "score": 90.9438932375}, {"name": "Paris Van Java", "kind": "mall", "lat": -6.8895641, "lon": 107.5960068, "reviews": 95760, "sub": "SUKAJADI", "demand": 2383, "leaked": 1615, "self_suff": 0.3222828368, "score": 90.883410364}, {"name": "Istana BEC", "kind": "mall", "lat": -6.9081348, "lon": 107.6091035, "reviews": 48069, "sub": "SUMUR BANDUNG", "demand": 2762, "leaked": 1849, "self_suff": 0.330557567, "score": 89.3804340487}, {"name": "Balubur Town Square", "kind": "mall", "lat": -6.8987329, "lon": 107.6085366, "reviews": 29873, "sub": "BANDUNG WETAN", "demand": 2733, "leaked": 1970, "self_suff": 0.2791803879, "score": 87.3029980708}, {"name": "Istana Plaza", "kind": "mall", "lat": -6.9057347, "lon": 107.5970082, "reviews": 25580, "sub": "CICENDO", "demand": 2596, "leaked": 1963, "self_suff": 0.2438366718, "score": 85.4322294593}, {"name": "23 Paskal", "kind": "mall", "lat": -6.9152733, "lon": 107.5945388, "reviews": 37883, "sub": "ANDIR", "demand": 1203, "leaked": 1026, "self_suff": 0.1471321696, "score": 65.6497535505}, {"name": "ITB", "kind": "campus", "lat": -6.8903617, "lon": 107.6101912, "reviews": 5878, "sub": "COBLONG", "demand": 4053, "leaked": 1763, "self_suff": 0.5650135702, "score": 64.2681342715}, {"name": "Trans Studio Mall", "kind": "mall", "lat": -6.925542, "lon": 107.6366676, "reviews": 6524, "sub": "BATUNUNGGAL", "demand": 1853, "leaked": 1668, "self_suff": 0.0998381004, "score": 62.9648508131}, {"name": "UPI Setiabudi", "kind": "campus", "lat": -6.8613013, "lon": 107.5920834, "reviews": 4834, "sub": "SUKASARI", "demand": 2059, "leaked": 1390, "self_suff": 0.3249150073, "score": 52.558292591}, {"name": "Bandung Station", "kind": "station", "lat": -6.9146466, "lon": 107.6024376, "reviews": 9650, "sub": "ANDIR", "demand": 1203, "leaked": 1026, "self_suff": 0.1471321696, "score": 50.7444161113}, {"name": "Miko Mall", "kind": "mall", "lat": -6.9601234, "lon": 107.5803739, "reviews": 20025, "sub": "BABAKAN CIPARAY", "demand": 823, "leaked": 696, "self_suff": 0.1543134872, "score": 50.226481573}, {"name": "Festival Citylink", "kind": "mall", "lat": -6.9297388, "lon": 107.5854607, "reviews": 15000, "sub": "BOJONGLOA KALER", "demand": 728, "leaked": 623, "self_suff": 0.1442307692, "score": 45.2026457457}, {"name": "Maranatha", "kind": "campus", "lat": -6.8858967, "lon": 107.5805279, "reviews": 1219, "sub": "SUKAJADI", "demand": 2383, "leaked": 1615, "self_suff": 0.3222828368, "score": 43.3268396007}, {"name": "Kiaracondong Station", "kind": "station", "lat": -6.9249264, "lon": 107.646287, "reviews": 5993, "sub": "KIARACONDONG", "demand": 1009, "leaked": 879, "self_suff": 0.1288404361, "score": 41.777699235}, {"name": "Telkom University", "kind": "campus", "lat": -6.9734163, "lon": 107.630406, "reviews": 3257, "sub": "DAYEUHKOLOT", "demand": 1038, "leaked": 728, "self_suff": 0.2986512524, "score": 31.2548282109}, {"name": "Unpad Jatinangor", "kind": "campus", "lat": -6.9261321, "lon": 107.7746881, "reviews": 3298, "sub": "JATINANGOR", "demand": 2210, "leaked": 23, "self_suff": 0.9895927602, "score": 13.2863652305}, {"name": "UIN Sunan Gunung Djati", "kind": "campus", "lat": -6.9311478, "lon": 107.7177615, "reviews": 1310, "sub": "CIBIRU", "demand": 274, "leaked": 164, "self_suff": 0.401459854, "score": 6.8485204476}, {"name": "Whoosh Padalarang", "kind": "station", "lat": -6.8422332, "lon": 107.4961386, "reviews": 974, "sub": "PADALARANG", "demand": 640, "leaked": 140, "self_suff": 0.78125, "score": 3.0046224961}]};
+const fmt=n=>n.toLocaleString('en-US');
+function ssColor(s){return s<0.25?'#C8232C':(s<=0.50?'#F0A500':'#2E7D52');}
+function fitColor(f){return f>=70?'#C8232C':(f>=45?'#F0A500':'#B9A78E');}
+const emo={mall:'\ud83c\udfec',campus:'\ud83c\udf93',station:'\ud83d\ude89'};
+const map=L.map('map',{zoomControl:true}).setView([-6.91,107.62],12);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap, &copy; CARTO',maxZoom:19}).addTo(map);
+const areaL=L.layerGroup().addTo(map), anchorL=L.layerGroup().addTo(map);
+const aMark={};
+DATA.areas.forEach(a=>{
+  L.circleMarker([a.lat,a.lon],{radius:5+Math.sqrt(a.leaked)*0.32,color:'#fff',weight:1.5,fillColor:ssColor(a.self_suff),fillOpacity:.72}).addTo(areaL)
+   .bindPopup(`<div class="pop"><h3>${a.sub}</h3><div class="pr">${a.reg.toLowerCase()} · rank #${a.rank}</div>
+   <table><tr><td>Online orders/mo</td><td>${fmt(a.demand)}</td></tr><tr><td>Leaked (underserved)</td><td>${fmt(a.leaked)}</td></tr>
+   <tr><td>Self-sufficiency</td><td>${(a.self_suff*100).toFixed(0)}%</td></tr><tr><td>Avg delivery dist</td><td>${a.dist.toFixed(1)} km</td></tr></table></div>`);
+});
+DATA.anchors.forEach((a,i)=>{
+  const icon=L.divIcon({className:'',iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-28],
+    html:`<div class="siteicon" style="background:${fitColor(a.score)}">${emo[a.kind]}</div>`});
+  const m=L.marker([a.lat,a.lon],{icon}).addTo(anchorL);
+  m.bindPopup(`<div class="pop"><h3>${a.name}</h3><div class="pr">${a.kind} · ${a.sub.toLowerCase()}</div>
+   <span class="badge" style="background:${fitColor(a.score)};${a.score>=45&&a.score<70?'color:#2A1A18':''}">Site fit ${a.score.toFixed(0)}</span>
+   <table><tr><td>Footfall proxy (reviews)</td><td>${fmt(a.reviews)}</td></tr>
+   <tr><td>Underserved orders in area</td><td>${fmt(a.leaked)}/mo</td></tr>
+   <tr><td>Area self-sufficiency</td><td>${(a.self_suff*100).toFixed(0)}%</td></tr></table></div>`);
+  aMark[i]=m;
+});
+L.control.layers(null,{'\ud83d\udd34 Demand areas':areaL,'\ud83c\udfec Kiosk sites':anchorL},{collapsed:false,position:'topright'}).addTo(map);
+const listA=document.getElementById('listA');
+DATA.areas.forEach(a=>{
+  const c=document.createElement('div'); c.className='card'; c.style.borderLeftColor=ssColor(a.self_suff);
+  c.innerHTML=`<div class="top"><span class="nm">${a.sub}</span><span class="rk" style="background:${ssColor(a.self_suff)}">#${a.rank}</span></div>
+   <div class="sub">${a.reg.toLowerCase()}</div>
+   <div class="mets"><span><b>${fmt(a.leaked)}</b>leaked/mo</span><span><b>${fmt(a.demand)}</b>total orders</span><span><b>${(a.self_suff*100).toFixed(0)}%</b>self-suff</span></div>`;
+  c.onclick=()=>{if(!map.hasLayer(areaL))map.addLayer(areaL);map.flyTo([a.lat,a.lon],14,{duration:.6});};
+  listA.appendChild(c);
+});
+const listB=document.getElementById('listB');
+DATA.anchors.forEach((a,i)=>{
+  const c=document.createElement('div'); c.className='card'; c.style.borderLeftColor=fitColor(a.score);
+  c.innerHTML=`<div class="top"><span class="nm">${a.name}</span><span class="kindtag ${a.kind}">${a.kind}</span></div>
+   <div class="sub">${a.sub.toLowerCase()} · ${fmt(a.reviews)} reviews · ${fmt(a.leaked)} leaked/mo</div>
+   <div class="mets"><span><b>${a.score.toFixed(0)}</b>site fit</span><span><b>${(a.self_suff*100).toFixed(0)}%</b>area self-suff</span></div>
+   <div class="bar"><i style="width:${a.score}%;background:${fitColor(a.score)}"></i></div>`;
+  c.onclick=()=>{if(!map.hasLayer(anchorL))map.addLayer(anchorL);map.flyTo([a.lat,a.lon],15,{duration:.6});setTimeout(()=>aMark[i].openPopup(),620);};
+  listB.appendChild(c);
+});
+function show(v){
+  document.getElementById('tA').classList.toggle('on',v=='A');document.getElementById('tB').classList.toggle('on',v=='B');
+  document.getElementById('listA').classList.toggle('hide',v!='A');document.getElementById('listB').classList.toggle('hide',v!='B');
+  document.getElementById('lA').classList.toggle('hide',v!='A');document.getElementById('lB').classList.toggle('hide',v!='B');
+  document.getElementById('fA').classList.toggle('hide',v!='A');document.getElementById('fB').classList.toggle('hide',v!='B');
+}
+</script></body></html>
